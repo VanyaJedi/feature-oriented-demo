@@ -1,0 +1,1 @@
+export { registerApplicationServices } from './registerServices'

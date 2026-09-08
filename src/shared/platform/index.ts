@@ -1,0 +1,1 @@
+export { getBrowserDocument } from './browser'

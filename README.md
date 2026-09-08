@@ -1,0 +1,130 @@
+# Feature-oriented demo
+
+Минимальный React-пример для статьи о модульной feature-oriented архитектуре.
+
+В приложении три бизнес-модуля:
+
+- `catalog` владеет товарами и их выдачей;
+- `checkout` владеет составом и итогом заказа;
+- `delivery` реализует расчёт стоимости доставки.
+
+`checkout` не импортирует runtime-код из `delivery`. Он объявляет небольшой контракт `DeliveryPriceProvider`, а слой `app` регистрирует `MockDeliveryPriceService` под токеном этого контракта.
+
+```text
+CatalogPage
+├── catalog UI + useCatalog
+└── checkout UI + useCheckout
+                    ↓
+              CheckoutService
+                    ↓
+          DeliveryPriceProvider
+                    ↑
+         MockDeliveryPriceService
+```
+
+## Запуск
+
+Для инструментов проверки нужен Node.js 20.19+, 22.13+ или 24+.
+
+```bash
+npm install
+npm run dev
+```
+
+## Структура
+
+```text
+src/
+├── app/              # composition root и корневой компонент
+├── pages/            # композиция feature-модулей на экране
+├── features/
+│   ├── catalog/      # моковые товары и UI выдачи
+│   ├── checkout/     # заказ и потребитель DI-контракта
+│   └── delivery/     # реализация расчёта доставки
+├── infrastructure/
+│   └── di/           # учебный DI-контейнер и его экземпляр
+└── shared/
+    └── platform/     # безопасный доступ к browser API
+```
+
+Чтобы показать заменяемость реализации, поменяйте `MockDeliveryPriceService` в `src/app/di/registerServices.ts` на другой класс, реализующий `DeliveryPriceProvider`. Код `checkout` при этом менять не потребуется.
+
+## Учебный DI-контейнер
+
+Демо использует локальный контейнер из `src/infrastructure/di/container.ts`.
+Зависимостей от внутреннего DI-пакета и корпоративного npm-реестра нет.
+
+`createToken<T>()` создаёт уникальный типизированный токен, `register(token, instance)`
+сохраняет готовый экземпляр, а `get(token)` возвращает его. Если токен не зарегистрирован,
+контейнер выбрасывает ошибку с его именем. Повторная регистрация заменяет экземпляр.
+
+Зависимости передаются явно при создании сервисов:
+
+```ts
+container.register(
+    checkoutServiceToken,
+    new CheckoutService({
+        deliveryPriceProvider: container.get(deliveryPriceProviderToken),
+    }),
+)
+```
+
+Поэтому сервис доставки регистрируется раньше checkout. Все экземпляры создаются
+при запуске приложения. Здесь нет автоматического внедрения по именам, ленивой
+загрузки, scopes или управления освобождением ресурсов: контейнер нужен только
+для демонстрации связи модулей через токены.
+
+## Архитектурные проверки ESLint
+
+```bash
+npm run lint
+npm run test:lint
+```
+
+Правило `architecture/import-direction` находится в `eslint/architecture.js`,
+настройки — в `eslint.config.js`. Это адаптация правила из основного проекта для
+слоёв демо: `app → pages → features → infrastructure → shared`.
+
+- Разрешены зависимости от своего слоя и любого нижележащего.
+- Между разными фичами разрешены только type-only импорты и реэкспорты.
+- Между разными страницами импорты запрещены.
+- Корневой импорт `@features/catalog` запрещён; используйте входы вроде
+  `@features/catalog/model` или `@features/catalog/di`.
+- Правило проверяет алиасы демо, относительные пути, реэкспорты и динамические
+  импорты со строковым литералом.
+- Прямые обращения к браузерным глобальным объектам запрещены. Доступ через
+  `globalThis.window` и аналогичные свойства разрешён только в `shared/platform`.
+
+Примеры для файла внутри `features/checkout`:
+
+```ts
+// Разрешено: зависимость от типа соседней фичи.
+import type { Product } from '@features/catalog/model'
+
+// Ошибка: runtime-зависимость от соседней фичи.
+import { CatalogService } from '@features/catalog/services'
+
+// Ошибка: импорт из вышележащего слоя.
+import { App } from '@app/App'
+```
+
+В `eslint/architecture.test.js` находятся исполняемые примеры разрешённых и
+запрещённых зависимостей. Это учебная статическая проверка: она не отслеживает
+вычисляемые пути импортов, произвольные алиасы `globalThis`, циклы внутри слоя
+или наличие проверок доступности API в адаптерах. Публичность каждого вложенного
+файла фичи также отдельно не проверяется.
+
+## Архитектура и инструкции для агентов
+
+Решения и ограничения учебного примера описаны в
+[ADR 0001](docs/adr/0001-architecture.md).
+
+В `.agents/skills` находятся два локальных навыка:
+
+- [adr-slice-auditor](.agents/skills/adr-slice-auditor/SKILL.md) — проверка слоёв,
+  импортов, размещения кода и явной сборки DI;
+- [platform-agnostic-frontend](.agents/skills/platform-agnostic-frontend/SKILL.md) —
+  доступ к браузерным API через адаптеры и поведение при их отсутствии.
+
+Инструкции соответствуют этому демо: они не требуют внутренних библиотек,
+корпоративной инфраструктуры или фреймворков, которых нет в зависимостях проекта.
