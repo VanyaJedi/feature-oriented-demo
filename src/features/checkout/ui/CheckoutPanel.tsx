@@ -66,7 +66,7 @@ export function CheckoutPanel({ itemCount, summary, onClear }: CheckoutPanelProp
             <div className="di-note">
                 <span>DI</span>
                 <p>
-                    Checkout знает только контракт <code>DeliveryPriceProvider</code>. Реализация находится в модуле delivery.
+                    Checkout импортирует только тип <code>DeliveryPriceService</code> из delivery и получает экземпляр через DI.
                 </p>
             </div>
         </aside>

@@ -8,7 +8,7 @@
 - `checkout` владеет составом и итогом заказа;
 - `delivery` реализует расчёт стоимости доставки.
 
-`checkout` не импортирует runtime-код из `delivery`. Он объявляет небольшой контракт `DeliveryPriceProvider`, а слой `app` регистрирует `MockDeliveryPriceService` под токеном этого контракта.
+`checkout` импортирует только тип класса `DeliveryPriceService` из `delivery`, а слой `app` регистрирует экземпляр под токеном зависимости checkout. Отдельный интерфейс для единственной реализации не нужен.
 
 ```text
 CatalogPage
@@ -17,9 +17,7 @@ CatalogPage
                     ↓
               CheckoutService
                     ↓
-          DeliveryPriceProvider
-                    ↑
-         MockDeliveryPriceService
+         DeliveryPriceService
 ```
 
 ## Запуск
@@ -39,7 +37,7 @@ src/
 ├── pages/            # композиция feature-модулей на экране
 ├── features/
 │   ├── catalog/      # моковые товары и UI выдачи
-│   ├── checkout/     # заказ и потребитель DI-контракта
+│   ├── checkout/     # заказ и потребитель сервиса доставки
 │   └── delivery/     # реализация расчёта доставки
 ├── infrastructure/
 │   └── di/           # учебный DI-контейнер и его экземпляр
@@ -47,7 +45,7 @@ src/
     └── platform/     # безопасный доступ к browser API
 ```
 
-Чтобы показать заменяемость реализации, поменяйте `MockDeliveryPriceService` в `src/app/di/registerServices.ts` на другой класс, реализующий `DeliveryPriceProvider`. Код `checkout` при этом менять не потребуется.
+Чтобы показать заменяемость реализации, поменяйте `DeliveryPriceService` в `src/app/di/registerServices.ts` на другой класс с совместимым методом `calculate(subtotal: number): number`. TypeScript использует структурную типизацию, поэтому отдельный интерфейс для такой замены не требуется.
 
 ## Учебный DI-контейнер
 

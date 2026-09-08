@@ -28,7 +28,7 @@ export function CatalogPage() {
                 <i>+</i>
                 <span>checkout</span>
                 <i>→</i>
-                <strong>DeliveryPriceProvider</strong>
+                <strong>DeliveryPriceService</strong>
                 <i>←</i>
                 <span>delivery</span>
             </div>

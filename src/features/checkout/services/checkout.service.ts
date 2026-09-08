@@ -1,11 +1,12 @@
 import type { Product } from '@features/catalog/model'
+import type { DeliveryPriceService } from '@features/delivery/services'
 
-import type { CheckoutItem, CheckoutSummary, DeliveryPriceProvider } from '../model'
+import type { CheckoutItem, CheckoutSummary } from '../model'
 
 export class CheckoutService {
-    private readonly deliveryPriceProvider: DeliveryPriceProvider
+    private readonly deliveryPriceProvider: DeliveryPriceService
 
-    constructor({ deliveryPriceProvider }: { deliveryPriceProvider: DeliveryPriceProvider }) {
+    constructor({ deliveryPriceProvider }: { deliveryPriceProvider: DeliveryPriceService }) {
         this.deliveryPriceProvider = deliveryPriceProvider
     }
 

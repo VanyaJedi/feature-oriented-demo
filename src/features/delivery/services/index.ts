@@ -1,1 +1,1 @@
-export { MockDeliveryPriceService } from './mock-delivery-price.service'
+export { DeliveryPriceService } from './delivery-price.service'
