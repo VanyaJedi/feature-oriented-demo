@@ -1,1 +1,1 @@
-export type { CheckoutItem, CheckoutSummary } from './checkout.types'
+export type { CheckoutItem, CheckoutSummary, OrderInput, Order } from './checkout.types'

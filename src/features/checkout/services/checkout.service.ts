@@ -1,13 +1,25 @@
 import type { Product } from '@features/catalog/model'
 import type { DeliveryPriceService } from '@features/delivery/services'
 
-import type { CheckoutItem, CheckoutSummary } from '../model'
+import type { CheckoutItem, CheckoutSummary, OrderInput, Order } from '../model'
 
 export class CheckoutService {
+    private nextOrderId = 1
     private readonly deliveryPriceProvider: DeliveryPriceService
 
     constructor({ deliveryPriceProvider }: { deliveryPriceProvider: DeliveryPriceService }) {
         this.deliveryPriceProvider = deliveryPriceProvider
+    }
+
+    async placeOrder(input: OrderInput): Promise<Order> {
+        if (input.products.length === 0) throw new Error('Заказ не должен быть пустым')
+        if (input.products.some(product => !Number.isFinite(product.price) || product.price < 0)) {
+            throw new Error('Некорректная цена товара')
+        }
+        const summary = this.createSummary(input.products)
+        // Имитация запроса: реальный заказ никуда не отправляется.
+        await new Promise(resolve => setTimeout(resolve, 800))
+        return { id: `DEMO-${this.nextOrderId++}`, summary }
     }
 
     createSummary(products: Product[]): CheckoutSummary {

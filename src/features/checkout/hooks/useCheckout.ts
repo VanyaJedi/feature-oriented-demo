@@ -1,19 +1,42 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
-import type { Product } from '@features/catalog/model'
 import { diContainer } from '@infra/di'
 
 import { checkoutServiceToken } from '../di'
+import type { OrderInput } from '../model'
 
-export const useCheckout = () => {
+export const useCheckout = ({ onSuccess }: { onSuccess: () => void }) => {
     const checkoutService = diContainer.get(checkoutServiceToken)
-    const [products, setProducts] = useState<Product[]>([])
-    const summary = useMemo(() => checkoutService.createSummary(products), [checkoutService, products])
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [orderId, setOrderId] = useState<string | null>(null)
+
+    const placeOrder = async (input: OrderInput): Promise<void> => {
+        if (isSubmitting) return
+        setIsSubmitting(true)
+        setError(null)
+        setOrderId(null)
+        try {
+            const order = await checkoutService.placeOrder(input)
+            setOrderId(order.id)
+            onSuccess()
+        } catch {
+            setError('Не удалось оформить заказ. Попробуйте ещё раз.')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     return {
-        addProduct: (product: Product) => setProducts(current => [...current, product]),
-        clear: () => setProducts([]),
-        itemCount: products.length,
-        summary,
+        reset: () => {
+            if (isSubmitting) return false
+            setError(null)
+            setOrderId(null)
+            return true
+        },
+        placeOrder,
+        isSubmitting,
+        error,
+        orderId,
     }
 }

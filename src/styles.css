@@ -450,3 +450,9 @@ h2 {
     font-size: 24px;
     cursor: pointer;
 }
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.order-success, .order-error { padding: 12px; border-radius: 12px; font-size: 14px; }
+.order-success { background: #f1f7dc; color: #325715; }
+.order-error { background: #fff0ed; color: #9d3525; }
+.order-demo-note { margin: 16px 0 0; font-size: 12px; line-height: 1.5; color: #687065; }

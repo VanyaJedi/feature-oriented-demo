@@ -4,11 +4,15 @@ type CheckoutPanelProps = {
     itemCount: number
     summary: CheckoutSummary
     onClear: () => void
+    onPlaceOrder: () => void
+    isSubmitting: boolean
+    error: string | null
+    orderId: string | null
 }
 
 const formatPrice = (price: number): string => `${new Intl.NumberFormat('ru-RU').format(price)} ₽`
 
-export function CheckoutPanel({ itemCount, summary, onClear }: CheckoutPanelProps) {
+export function CheckoutPanel({ itemCount, summary, onClear, onPlaceOrder, isSubmitting, error, orderId }: CheckoutPanelProps) {
     return (
         <aside className="checkout" aria-labelledby="checkout-title">
             <div className="checkout-heading">
@@ -19,6 +23,8 @@ export function CheckoutPanel({ itemCount, summary, onClear }: CheckoutPanelProp
                 <span className="checkout-badge">{itemCount}</span>
             </div>
 
+            {orderId && <p className="order-success" role="status">Демо-заказ {orderId} оформлен!</p>}
+            {error && <p className="order-error" role="alert">{error}</p>}
             {summary.items.length === 0 ? (
                 <div className="empty-state">
                     <span aria-hidden="true">🛍️</span>
@@ -54,14 +60,15 @@ export function CheckoutPanel({ itemCount, summary, onClear }: CheckoutPanelProp
                         <strong>{formatPrice(summary.total)}</strong>
                     </div>
 
-                    <button className="primary-button" type="button">
-                        Оформить заказ
+                    <button className="primary-button" type="button" disabled={isSubmitting} onClick={onPlaceOrder}>
+                        {isSubmitting ? 'Оформляем…' : 'Оформить заказ'}
                     </button>
-                    <button className="clear-button" type="button" onClick={onClear}>
+                    <button className="clear-button" type="button" onClick={onClear} disabled={isSubmitting}>
                         Очистить
                     </button>
                 </>
             )}
+            <p className="order-demo-note">Учебный пример: реальный заказ не создаётся.</p>
 
             <div className="di-note">
                 <span>DI</span>

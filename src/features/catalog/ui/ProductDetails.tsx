@@ -5,9 +5,10 @@ type Props = {
     product: Product
     onAdd: (product: Product) => void
     onClose: () => void
+    isAddingDisabled?: boolean
 }
 
-export function ProductDetails({ product, onAdd, onClose }: Props) {
+export function ProductDetails({ product, onAdd, onClose, isAddingDisabled }: Props) {
     const dialogRef = useRef<HTMLDialogElement>(null)
 
     useEffect(() => {
@@ -35,7 +36,7 @@ export function ProductDetails({ product, onAdd, onClose }: Props) {
                 <p id="product-popup-description">{product.description}</p>
                 <div className="product-footer">
                     <strong>{product.price.toLocaleString('ru-RU')} ₽</strong>
-                    <button type="button" onClick={() => { onAdd(product); onClose() }}>Добавить в заказ</button>
+                    <button type="button" disabled={isAddingDisabled} onClick={() => { onAdd(product); onClose() }}>Добавить в заказ</button>
                 </div>
             </div>
         </dialog>

@@ -4,11 +4,12 @@ type ProductGridProps = {
     products: Product[]
     onAdd: (product: Product) => void
     onView: (product: Product) => void
+    isAddingDisabled?: boolean
 }
 
 const formatPrice = (price: number): string => new Intl.NumberFormat('ru-RU').format(price)
 
-export function ProductGrid({ products, onAdd, onView }: ProductGridProps) {
+export function ProductGrid({ products, onAdd, onView, isAddingDisabled }: ProductGridProps) {
     return (
         <section className="catalog" aria-labelledby="catalog-title">
             <div className="section-heading">
@@ -31,7 +32,7 @@ export function ProductGrid({ products, onAdd, onView }: ProductGridProps) {
                         <button className="details-button" type="button" onClick={() => onView(product)}>Подробнее</button>
                         <div className="product-footer">
                             <strong>{formatPrice(product.price)} ₽</strong>
-                            <button type="button" onClick={() => onAdd(product)}>
+                            <button type="button" disabled={isAddingDisabled} onClick={() => onAdd(product)}>
                                 Добавить
                             </button>
                         </div>

@@ -5,12 +5,13 @@ import { ProductDetails } from '@features/catalog/ui/ProductDetails'
 import { useCatalog } from '@features/catalog/hooks'
 import type { Product } from '@features/catalog/model'
 import { ProductGrid } from '@features/catalog/ui'
-import { useCheckout } from '@features/checkout/hooks'
+import { useCheckout, useSummary } from '@features/checkout/hooks'
 import { CheckoutPanel } from '@features/checkout/ui'
 
 export function CatalogPage() {
     const { products } = useCatalog()
-    const checkout = useCheckout()
+    const cart = useSummary()
+    const checkout = useCheckout({ onSuccess: cart.clear })
     const recent = useRecentItems()
     const [selected, setSelected] = useState<Product | null>(null)
     const viewProduct = (product: Product) => {
@@ -23,7 +24,7 @@ export function CatalogPage() {
     })
 
     const handleAdd = (product: Product): void => {
-        checkout.addProduct(product)
+        if (checkout.reset()) cart.addProduct(product)
     }
 
     return (
@@ -50,12 +51,20 @@ export function CatalogPage() {
             <main className="market-layout">
                 <div>
                     {selected && (
-                        <ProductDetails product={selected} onAdd={handleAdd} onClose={() => setSelected(null)} />
+                        <ProductDetails product={selected} onAdd={handleAdd} onClose={() => setSelected(null)} isAddingDisabled={checkout.isSubmitting} />
                     )}
                     <RecentItems products={recentProducts} error={recent.error} onView={viewProduct} onClear={recent.clear} />
-                    <ProductGrid products={products} onAdd={handleAdd} onView={viewProduct} />
+                    <ProductGrid products={products} onAdd={handleAdd} onView={viewProduct} isAddingDisabled={checkout.isSubmitting} />
                 </div>
-                <CheckoutPanel itemCount={checkout.itemCount} summary={checkout.summary} onClear={checkout.clear} />
+                <CheckoutPanel
+                    itemCount={cart.itemCount}
+                    summary={cart.summary}
+                    onClear={() => { if (checkout.reset()) cart.clear() }}
+                    onPlaceOrder={() => { void checkout.placeOrder({ products: cart.products }) }}
+                    isSubmitting={checkout.isSubmitting}
+                    error={checkout.error}
+                    orderId={checkout.orderId}
+                />
             </main>
         </div>
     )
