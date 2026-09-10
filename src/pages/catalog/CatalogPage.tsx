@@ -1,3 +1,7 @@
+import { useState } from 'react'
+import { useRecentItems } from '@features/recent-items/hooks/useRecentItems'
+import { RecentItems } from '@features/recent-items/ui/RecentItems'
+import { ProductDetails } from '@features/catalog/ui/ProductDetails'
 import { useCatalog } from '@features/catalog/hooks'
 import type { Product } from '@features/catalog/model'
 import { ProductGrid } from '@features/catalog/ui'
@@ -7,6 +11,16 @@ import { CheckoutPanel } from '@features/checkout/ui'
 export function CatalogPage() {
     const { products } = useCatalog()
     const checkout = useCheckout()
+    const recent = useRecentItems()
+    const [selected, setSelected] = useState<Product | null>(null)
+    const viewProduct = (product: Product) => {
+        setSelected(product)
+        recent.add(product.id)
+    }
+    const recentProducts = recent.ids.flatMap(id => {
+        const product = products.find(item => item.id === id)
+        return product ? [product] : []
+    })
 
     const handleAdd = (product: Product): void => {
         checkout.addProduct(product)
@@ -19,7 +33,7 @@ export function CatalogPage() {
                 <div>
                     <span className="eyebrow">Feature-oriented demo</span>
                     <h1>Простой маркетплейс</h1>
-                    <p>Три независимых бизнес-модуля, связанные в composition root.</p>
+                    <p>Каталог, заказ, доставка и история просмотров.</p>
                 </div>
             </header>
 
@@ -34,7 +48,13 @@ export function CatalogPage() {
             </div>
 
             <main className="market-layout">
-                <ProductGrid products={products} onAdd={handleAdd} />
+                <div>
+                    {selected && (
+                        <ProductDetails product={selected} onAdd={handleAdd} onClose={() => setSelected(null)} />
+                    )}
+                    <RecentItems products={recentProducts} error={recent.error} onView={viewProduct} onClear={recent.clear} />
+                    <ProductGrid products={products} onAdd={handleAdd} onView={viewProduct} />
+                </div>
                 <CheckoutPanel itemCount={checkout.itemCount} summary={checkout.summary} onClear={checkout.clear} />
             </main>
         </div>

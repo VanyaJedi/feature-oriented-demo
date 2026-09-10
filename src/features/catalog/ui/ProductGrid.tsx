@@ -3,11 +3,12 @@ import type { Product } from '../model'
 type ProductGridProps = {
     products: Product[]
     onAdd: (product: Product) => void
+    onView: (product: Product) => void
 }
 
 const formatPrice = (price: number): string => new Intl.NumberFormat('ru-RU').format(price)
 
-export function ProductGrid({ products, onAdd }: ProductGridProps) {
+export function ProductGrid({ products, onAdd, onView }: ProductGridProps) {
     return (
         <section className="catalog" aria-labelledby="catalog-title">
             <div className="section-heading">
@@ -27,6 +28,7 @@ export function ProductGrid({ products, onAdd }: ProductGridProps) {
                         <span className="product-category">{product.category}</span>
                         <h3>{product.title}</h3>
                         <p>{product.description}</p>
+                        <button className="details-button" type="button" onClick={() => onView(product)}>Подробнее</button>
                         <div className="product-footer">
                             <strong>{formatPrice(product.price)} ₽</strong>
                             <button type="button" onClick={() => onAdd(product)}>

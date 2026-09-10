@@ -1,10 +1,14 @@
 import { registerCatalogServices } from '@features/catalog/di'
-import { deliveryPriceProviderToken, registerCheckoutServices } from '@features/checkout/di'
-import { DeliveryPriceService } from '@features/delivery/services'
+import { registerCheckoutServices } from '@features/checkout/di'
+import { deliveryPriceServiceToken, registerDeliveryServices } from '@features/delivery/di'
 import { diContainer } from '@infra/di'
+import { registerRecentItemsServices } from '@features/recent-items/di/registerRecentItemsServices'
 
 export const registerApplicationServices = (): void => {
     registerCatalogServices(diContainer)
-    diContainer.register(deliveryPriceProviderToken, new DeliveryPriceService())
-    registerCheckoutServices(diContainer)
+    registerRecentItemsServices(diContainer)
+    registerDeliveryServices(diContainer)
+    registerCheckoutServices(diContainer, {
+        deliveryPriceProvider: diContainer.get(deliveryPriceServiceToken),
+    })
 }

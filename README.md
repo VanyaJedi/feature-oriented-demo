@@ -2,13 +2,24 @@
 
 Минимальный React-пример для статьи о модульной feature-oriented архитектуре.
 
-В приложении три бизнес-модуля:
+В приложении четыре бизнес-модуля:
 
 - `catalog` владеет товарами и их выдачей;
 - `checkout` владеет составом и итогом заказа;
 - `delivery` реализует расчёт стоимости доставки.
+- `recent-items` хранит последние пять просмотренных товаров в localStorage.
 
-`checkout` импортирует только тип класса `DeliveryPriceService` из `delivery`, а слой `app` регистрирует экземпляр под токеном зависимости checkout. Отдельный интерфейс для единственной реализации не нужен.
+Чтобы попробовать историю, нажмите «Подробнее» у нескольких товаров, затем
+перезагрузите страницу. Повторный просмотр переносит товар в начало списка,
+а «Очистить историю» удаляет сохранённые просмотры. Заказ работает как раньше.
+В storage сохраняются только ID; данные товаров берутся из каталога.
+
+`RecentItemsService` получает доступ к storage через `getLocalStorage` из
+`shared/platform`. Hook вызывает сервис через DI и управляет состоянием UI.
+При ошибке доступа, чтения или записи показывается сообщение; fallback в память
+не используется. Тесты проверяют порядок, лимит, восстановление, очистку и ошибки.
+
+`checkout` импортирует только тип класса `DeliveryPriceService` из `delivery`. Слой `app` вызывает `registerDeliveryServices`, получает экземпляр по токену delivery и передаёт его в `registerCheckoutServices`. Отдельный интерфейс для единственной реализации не нужен.
 
 ```text
 CatalogPage
@@ -49,7 +60,7 @@ src/
     └── platform/     # безопасный доступ к browser API
 ```
 
-Чтобы показать заменяемость реализации, поменяйте `DeliveryPriceService` в `src/app/di/registerServices.ts` на другой класс с совместимым методом `calculate(subtotal: number): number`. TypeScript использует структурную типизацию, поэтому отдельный интерфейс для такой замены не требуется.
+Чтобы показать заменяемость реализации, передайте в `registerCheckoutServices` другой объект с совместимым методом `calculate(subtotal: number): number`. TypeScript использует структурную типизацию, поэтому отдельный интерфейс для такой замены не требуется.
 
 ## Учебный DI-контейнер
 
@@ -66,7 +77,7 @@ src/
 container.register(
     checkoutServiceToken,
     new CheckoutService({
-        deliveryPriceProvider: container.get(deliveryPriceProviderToken),
+        deliveryPriceProvider: dependencies.deliveryPriceProvider,
     }),
 )
 ```
