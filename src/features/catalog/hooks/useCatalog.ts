@@ -14,8 +14,6 @@ export const useCatalog = () => {
     return {
         products: query.data ?? [],
         isPending: query.isPending,
-        isFetching: query.isFetching,
         error: query.error,
-        refresh: query.refetch,
     }
 }
