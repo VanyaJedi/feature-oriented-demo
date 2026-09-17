@@ -1,25 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 import { diContainer } from '@infra/di'
 
 import { catalogServiceToken } from '../di'
-import type { Product } from '../model'
 
 export const useCatalog = () => {
     const catalogService = diContainer.get(catalogServiceToken)
-    const [products, setProducts] = useState<Product[]>([])
+    const query = useQuery({
+        queryKey: ['catalog', 'products'],
+        queryFn: () => catalogService.getProducts(),
+    })
 
-    useEffect(() => {
-        let isActive = true
-
-        void catalogService.getProducts().then(items => {
-            if (isActive) setProducts(items)
-        })
-
-        return () => {
-            isActive = false
-        }
-    }, [catalogService])
-
-    return { products }
+    return {
+        products: query.data ?? [],
+        isPending: query.isPending,
+        isFetching: query.isFetching,
+        error: query.error,
+        refresh: query.refetch,
+    }
 }

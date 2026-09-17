@@ -9,7 +9,7 @@ import { useCheckout, useSummary } from '@features/checkout/hooks'
 import { CheckoutPanel } from '@features/checkout/ui'
 
 export function CatalogPage() {
-    const { products } = useCatalog()
+    const { products, isPending, isFetching, error, refresh } = useCatalog()
     const cart = useSummary()
     const checkout = useCheckout({ onSuccess: cart.clear })
     const recent = useRecentItems()
@@ -54,6 +54,11 @@ export function CatalogPage() {
                         <ProductDetails product={selected} onAdd={handleAdd} onClose={() => setSelected(null)} isAddingDisabled={checkout.isSubmitting} />
                     )}
                     <RecentItems products={recentProducts} error={recent.error} onView={viewProduct} onClear={recent.clear} />
+                    {isPending && <p role="status">Загружаем каталог…</p>}
+                    {error && <p role="alert">Не удалось загрузить каталог. Попробуйте ещё раз.</p>}
+                    <button type="button" disabled={isFetching} onClick={() => { void refresh() }}>
+                        {isFetching ? 'Обновляем каталог…' : 'Обновить каталог'}
+                    </button>
                     <ProductGrid products={products} onAdd={handleAdd} onView={viewProduct} isAddingDisabled={checkout.isSubmitting} />
                 </div>
                 <CheckoutPanel

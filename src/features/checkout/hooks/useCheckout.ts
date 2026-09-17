@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef } from 'react'
+import { useMutation } from '@tanstack/react-query'
 
 import { diContainer } from '@infra/di'
 
@@ -7,36 +8,34 @@ import type { OrderInput } from '../model'
 
 export const useCheckout = ({ onSuccess }: { onSuccess: () => void }) => {
     const checkoutService = diContainer.get(checkoutServiceToken)
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-    const [orderId, setOrderId] = useState<string | null>(null)
+    const submitting = useRef(false)
+    const mutation = useMutation({
+        mutationFn: (input: OrderInput) => checkoutService.placeOrder(input),
+        onSuccess,
+    })
 
     const placeOrder = async (input: OrderInput): Promise<void> => {
-        if (isSubmitting) return
-        setIsSubmitting(true)
-        setError(null)
-        setOrderId(null)
+        // Защищает от двух вызовов до следующего рендера.
+        if (submitting.current) return
+        submitting.current = true
         try {
-            const order = await checkoutService.placeOrder(input)
-            setOrderId(order.id)
-            onSuccess()
+            await mutation.mutateAsync(input)
         } catch {
-            setError('Не удалось оформить заказ. Попробуйте ещё раз.')
+            // Ошибка доступна через состояние mutation.
         } finally {
-            setIsSubmitting(false)
+            submitting.current = false
         }
     }
 
     return {
         reset: () => {
-            if (isSubmitting) return false
-            setError(null)
-            setOrderId(null)
+            if (submitting.current) return false
+            mutation.reset()
             return true
         },
         placeOrder,
-        isSubmitting,
-        error,
-        orderId,
+        isSubmitting: mutation.isPending,
+        error: mutation.isError ? 'Не удалось оформить заказ. Попробуйте ещё раз.' : null,
+        orderId: mutation.data?.id ?? null,
     }
 }
