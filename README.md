@@ -1,5 +1,7 @@
 # Feature-oriented demo
 
+[English](README.en.md) · Русский
+
 Минимальный React-пример для статьи о модульной feature-oriented архитектуре.
 
 В приложении четыре бизнес-модуля:
